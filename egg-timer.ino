@@ -1,12 +1,5 @@
 //#include <U8glib.h>
 
-///Stavy
-// 0. Vypnuto
-// 1. Menu
-// 2. Counter running
-// 3. Counter stopped
-// 4. Counter finished 
-
 ///Encoder
 const byte pinCLK = 3;
 const byte pinDT  = 4;
@@ -37,13 +30,48 @@ void setup() {
 void loop() {
   btnMode();
   setMode();
-    // set mode based on current mode and btn pressed
+    // act: set mode based on current mode and btn pressed
+    // act: start stand-by timeup
+    // inputs: btn pressed, time up (standby)
+  readEncoder();
+    // read encoder data
+    // output: +1, -1 (nebo raději abs. číslo?)
+  display();
+    // inputs: name, time, blinking 0/1
 
   switch(mode) {
+    // Switched off
+    case 0:
+      // act: sleep
+
+    // Listing menu
     case 1:
-      // display default item
-      // read knob position
-      // on change loop through items (forward / backward)
+      // act: loop through items (forward / backward)
+      // inputs: knob (relative)
+      // output: display default/selected item & time
+
+    // Timer running
+    case 2:
+      // act: decrease timer by seconds
+      // act: change timer by knob
+      // inputs: knob (abs.), current timer
+
+    // Timer timed out
+    case 3:
+      // act: beep
+      // act: blink display
+
+    // Timer paused / Set custom timer
+    case 4:
+      // act: change timer by knob
+      // act: blink timer var
+
+    // Set new default time for item (for selected items)
+    case 5:
+      // act: blink name var as sign of special mode
+      // act: change timer by knob
+      // act: save new values
+
     };
   
   stavCLK = digitalRead(pinCLK);
@@ -66,11 +94,11 @@ void wake() {
 byte btnMode() {
   // 0 zapnuto, 1 vypnuto
   if(digitalRead(pinSW) == 0 && btnState == 1) {
-    // eventOn > counter started 
+    // Button pressed > counter started 
     btnTime = millis();
     btnState = 0;
   } else if (digitalRead(pinSW) == 1 && btnState == 0) {
-    // eventOff > calculate btnMode
+    // Button released > calculate btnMode
     btnState = 1;
     btnTime = (millis() - btnTime);
     if(btnTime < 700) {
