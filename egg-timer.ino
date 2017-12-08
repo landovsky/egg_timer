@@ -1,4 +1,6 @@
+#include <LowPower.h>
 //#include <U8glib.h>
+
 
 ///Encoder
 const byte pinCLK = 3;
@@ -13,13 +15,13 @@ byte stavSW;
 byte stavDT;
 byte btnState = 1; // vypnuto
 int btnTime;
-byte btnMode;
-byte mode = 0;
+byte buttonMode;
+byte mode;
 
 ///Oled
 
 void setup() {
-  //attachInterrupt(digitalPinToInterrupt(interruptPin), wake, RISING);
+  attachInterrupt(digitalPinToInterrupt(interruptPin), wake, FALLING);
   Serial.begin(9600);
   pinMode(pinCLK, INPUT);
   pinMode(pinDT, INPUT);
@@ -28,50 +30,57 @@ void setup() {
 } 
 
 void loop() {
-  btnMode();
-  setMode();
+  mode = btnMode();
+  //setMode();
     // act: set mode based on current mode and btn pressed
     // act: start stand-by timeup
     // inputs: btn pressed, time up (standby)
-  readEncoder();
+  //readEncoder();
     // read encoder data
     // output: +1, -1 (nebo raději abs. číslo?)
-  display();
+  //display();
     // inputs: name, time, blinking 0/1
 
   switch(mode) {
     // Switched off
     case 0:
       // act: sleep
+      break;
 
     // Listing menu
     case 1:
       // act: loop through items (forward / backward)
       // inputs: knob (relative)
       // output: display default/selected item & time
+      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+      break;
 
     // Timer running
     case 2:
       // act: decrease timer by seconds
       // act: change timer by knob
       // inputs: knob (abs.), current timer
+      break;
 
     // Timer timed out
     case 3:
       // act: beep
       // act: blink display
+      break;
 
     // Timer paused / Set custom timer
     case 4:
       // act: change timer by knob
       // act: blink timer var
+      break;
 
     // Set new default time for item (for selected items)
     case 5:
       // act: blink name var as sign of special mode
       // act: change timer by knob
       // act: save new values
-
+      break;
+   
     };
   
   stavCLK = digitalRead(pinCLK);
@@ -88,7 +97,8 @@ void loop() {
 }
 
 void wake() {
-    mode = 1;
+    mode = 0;
+    Serial.println("Zív");
 }
 
 byte btnMode() {
@@ -103,12 +113,16 @@ byte btnMode() {
     btnTime = (millis() - btnTime);
     if(btnTime < 700) {
         Serial.println("Short click");
-        btnMode = 0;
+        buttonMode = 0;
+        return buttonMode;
       } else {
         Serial.println("Long click");
-        btnMode = 1;
+        buttonMode = 1;
+        return buttonMode;
       }
-    }
-    
+      return buttonMode;
   }
+  return buttonMode;
+}
+
 
