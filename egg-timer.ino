@@ -6,22 +6,26 @@
 const byte pinCLK = 3;
 const byte pinDT  = 4;
 const byte pinSW  = 2;
-const byte interruptPin = 2;
 
 int poziceEnkod = 0;
 byte stavPred;
 byte stavCLK;
 byte stavSW;
 byte stavDT;
-byte btnState = 1; // vypnuto
-int btnTime;
+byte btnState = 0; // vypnuto
+int btnTimeSt;
+int btnTime; // elapsed time in button pressed state
+byte timerType = 1;
 byte buttonMode;
-byte mode;
+boolean btnRd = 1; // allow reading of button state
+byte mode = 1;
+char modeName = 'menu';
+int previousMillis = 0;
 
 ///Oled
 
 void setup() {
-  attachInterrupt(digitalPinToInterrupt(interruptPin), wake, FALLING);
+  attachInterrupt(digitalPinToInterrupt(pinSW), wake, FALLING);
   Serial.begin(9600);
   pinMode(pinCLK, INPUT);
   pinMode(pinDT, INPUT);
@@ -29,12 +33,9 @@ void setup() {
   stavPred = digitalRead(pinCLK);   
 } 
 
-void loop() {
-  mode = btnMode();
-  //setMode();
-    // act: set mode based on current mode and btn pressed
-    // act: start stand-by timeup
-    // inputs: btn pressed, time up (standby)
+void loop() {  
+  btnMode();
+
   //readEncoder();
     // read encoder data
     // output: +1, -1 (nebo raději abs. číslo?)
@@ -45,6 +46,7 @@ void loop() {
     // Switched off
     case 0:
       // act: sleep
+      LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
       break;
 
     // Listing menu
@@ -52,7 +54,7 @@ void loop() {
       // act: loop through items (forward / backward)
       // inputs: knob (relative)
       // output: display default/selected item & time
-      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+      
       break;
 
     // Timer running
@@ -88,41 +90,149 @@ void loop() {
     stavDT = digitalRead(pinDT);
     if (stavDT != stavCLK) {
       poziceEnkod ++;
+      Serial.print("Po směru ");
     }
     else {
       poziceEnkod--;
+      Serial.print("Proti směru ");
     }
+    Serial.print("DT: ");
+    Serial.print(stavDT);
+    Serial.print(" CLK: ");
+    Serial.print(stavCLK);
+    Serial.print(" pozice: ");
+    Serial.println(poziceEnkod);
   }
   stavPred = stavCLK;
+  
+  if((millis() - previousMillis) > 1000) {
+    // Serial.print("known state: ");
+    // Serial.println(btnState);
+//    Serial.print(" allow reading: ");
+//    Serial.print(btnRd);
+//    Serial.print(" button mode: ");
+//    Serial.println("Ping");
+    previousMillis = millis();
+  }
+  //end
+}
+
+boolean buttonPressed () {
+  return digitalRead(pinSW) == 0;
+}
+
+boolean buttonOn () {
+  return btnState == 1;
+}
+
+boolean btnRead () {
+  return btnRd == 1;
 }
 
 void wake() {
-    mode = 0;
-    Serial.println("Zív");
 }
 
-byte btnMode() {
-  // 0 zapnuto, 1 vypnuto
-  if(digitalRead(pinSW) == 0 && btnState == 1) {
+void btnMode() {
+  if( buttonPressed() && !buttonOn() ) {
     // Button pressed > counter started 
-    btnTime = millis();
-    btnState = 0;
-  } else if (digitalRead(pinSW) == 1 && btnState == 0) {
-    // Button released > calculate btnMode
+    btnTimeSt = millis();
     btnState = 1;
-    btnTime = (millis() - btnTime);
-    if(btnTime < 700) {
-        Serial.println("Short click");
-        buttonMode = 0;
-        return buttonMode;
-      } else {
-        Serial.println("Long click");
-        buttonMode = 1;
-        return buttonMode;
-      }
-      return buttonMode;
   }
-  return buttonMode;
+  else if (buttonPressed() && buttonOn() && btnRead() ) {
+    // Button state down
+    btnTime = millis() - btnTimeSt;
+    
+    // Detect long-click and stop
+    if(btnTime > 700) {
+        // Serial.println("Long click");
+        //btnState = 0;
+        btnRd = 0;
+        buttonMode = 1;
+        setMode();
+        // return buttonMode;
+      }
+      // return buttonMode;
+  }
+  else if ( !buttonPressed() && buttonOn() ) {
+    // Button released > calculate short-click
+    btnState = 0;
+    btnRd = 1;
+    
+    btnTime = millis() - btnTimeSt;
+    if (btnTime < 700) {
+      // Serial.println("Short click");
+      buttonMode = 0;
+      setMode();
+      // return buttonMode;
+    }
+  }
+  // return buttonMode;
 }
+
+// act: set mode based on current mode and btn pressed
+// act: start stand-by timeup
+// inputs: btn pressed, time up (standby)
+void setMode() {
+  switch(mode) {
+    case 0: // power down
+      mode = 1;
+      Serial.println("Menu");
+      break;
+
+    // in menu
+    case 1:
+      if(buttonMode == 0) {
+        if(timerType == 99) {
+          mode = 4; // user chose custom timer
+          Serial.println("Timer is paused");
+        }
+        else {
+          mode = 2; // user chose named timer
+          Serial.println("Timer is running");
+        }
+        }
+      else {
+        // sleep
+        Serial.println("Powering down");
+        mode = 0;
+      }  
+      break;
+
+    // timer running
+    case 2:
+      mode = 4;
+      Serial.println("Timer is paused");
+      break;
+
+    // case 3 only happens by time-out
+    
+    // timer paused
+    case 4:
+      if(buttonMode == 0) {
+        mode = 2;
+        Serial.println("Timer is running");
+      } 
+      else {
+        mode = 1;
+        Serial.println("Menu");
+      }
+      break;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
