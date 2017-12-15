@@ -21,7 +21,7 @@ void setMenu(byte direction) {
         timer = 4 * 60;
         break;
       case 3:
-        strcpy(menuName, "CUSTOM");
+        strcpy(menuName, "TIMER");
         timer = 0;
         break;
     }

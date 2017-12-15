@@ -6,19 +6,19 @@ byte readKnob() {
     if (stavDT != stavCLK) {
       poziceEnkod ++;
       knob = 1;
-      Serial.print("Po směru ");
+      //Serial.print("Po směru ");
     }
     else {
       poziceEnkod--;
       knob = -1;
-      Serial.print("Proti směru ");
+      //Serial.print("Proti směru ");
     }
-    Serial.print("DT: ");
-    Serial.print(stavDT);
-    Serial.print(" CLK: ");
-    Serial.print(stavCLK);
-    Serial.print(" pozice: ");
-    Serial.println(poziceEnkod);
+    //Serial.print("DT: ");
+    //Serial.print(stavDT);
+    //Serial.print(" CLK: ");
+    //Serial.print(stavCLK);
+    //Serial.print(" pozice: ");
+    //Serial.println(poziceEnkod);
   }
   else {
     knob = 0;

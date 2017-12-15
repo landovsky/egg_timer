@@ -23,6 +23,7 @@ void setMode() {
       else {
         // sleep
         Serial.println("Powering down");
+        delay(1);
         mode = 0;
       }
       break;
@@ -33,8 +34,11 @@ void setMode() {
       Serial.println("Timer is paused");
       break;
 
-    // case 3 only happens by time-out
-
+    // time-out
+    case 3:
+      mode = 1; // go to menu if timeout acknowledged
+      break;
+    
     // timer paused
     case 4:
       if (buttonMode == 0) {
@@ -43,6 +47,8 @@ void setMode() {
       }
       else {
         mode = 1;
+        menuId = 0;
+        setMenu(1);
         Serial.println("Menu");
       }
       break;
