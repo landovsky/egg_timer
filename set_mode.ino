@@ -30,28 +30,44 @@ void setMode() {
 
     // timer running
     case 2:
-      mode = 4;
+      mode = 4; // go to pause
+      showDisplay(false);
       Serial.println("Timer is paused");
       break;
 
     // time-out
     case 3:
       mode = 1; // go to menu if timeout acknowledged
+      menuId = 0;
+      setMenu(1);
+      clearDisplay();
+      showDisplay(false);
       break;
     
     // timer paused
     case 4:
       if (buttonMode == 0) {
-        mode = 2;
+        mode = 2; // continue timer
+        showDisplay(false);
         Serial.println("Timer is running");
       }
       else {
         mode = 1;
         menuId = 0;
         setMenu(1);
+        showDisplay(false);
         Serial.println("Menu");
       }
       break;
+  }
+}
+
+void autoMode() {
+  if(timer < 0) {
+    mode = 3;
+  }
+  else {
+    mode = 2;
   }
 }
 

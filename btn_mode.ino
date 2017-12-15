@@ -1,3 +1,5 @@
+// Global vars: 
+
 boolean buttonPressed () {
   return digitalRead(pinSW) == 0;
 }
@@ -27,6 +29,7 @@ void btnMode() {
       btnRd = 0;
       buttonMode = 1;
       setMode();
+      showDisplay(false);
       // return buttonMode;
     }
     // return buttonMode;
@@ -40,6 +43,7 @@ void btnMode() {
       // Serial.println("Short click");
       buttonMode = 0;
       setMode();
+      showDisplay(false);
       // return buttonMode;
     }
   }

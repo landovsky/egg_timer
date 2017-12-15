@@ -25,6 +25,7 @@ void setMenu(byte direction) {
         timer = 0;
         break;
     }
+    showDisplay(false);
     Serial.println(menuName);
   }
 }

@@ -20,7 +20,10 @@ void printTime(long val) {
   Serial.print(hours);
   printDigits1(minutes);
   printDigits1(seconds);
-  Serial.println();
+  Serial.print(" mode: ");
+  Serial.print(mode);
+  Serial.print(" full sec: ");
+  Serial.println(fullSec);
 }
 
 char prefix1(int val) {
